@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -26,6 +28,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.service.mvisample.intent.LandingScreenIntent
@@ -36,7 +40,9 @@ import com.service.mvisample.view.viewstate.LandingScreenState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LandingScreen(navController: NavHostController, screenState:LandingScreenState,screenIntent: LandingScreenIntent) {
+fun LandingScreen(navController: NavHostController,sharedViewModel: SharedViewModel) {
+       val context = LocalContext.current
+
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -55,7 +61,9 @@ fun LandingScreen(navController: NavHostController, screenState:LandingScreenSta
                         }
                     },
                     actions = {
-                        IconButton(onClick = { /* Handle user icon click */ }) {
+                        IconButton(onClick = {
+                            sharedViewModel.userIntent()
+                        }) {
                             Icon(
                                 imageVector = Icons.Default.Person,
                                 contentDescription = "User Icon",
@@ -68,9 +76,34 @@ fun LandingScreen(navController: NavHostController, screenState:LandingScreenSta
             content = { padding ->
                 Box(
                     modifier = Modifier.padding(padding)) {
-                    with(screenState){
-                        when () {
+                    with(sharedViewModel.state){
+                        when(this.value){
+                           is LandingScreenState.Loading->{
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    CircularProgressIndicator(
+                                        color = Color.Red,
+                                        modifier = Modifier
+                                            .size(100.dp)
+                                            .fillMaxHeight()
+                                            .align(Alignment.Center)
+                                            .padding(16.dp)
+                                    )
+                                }
+                            }
+                           is LandingScreenState.Idle->{
+
+                            }
+                           is LandingScreenState.Users->{
+                              /* UserListing(userList = value.user , onUserClick = {
+
+                               }, modifier = Modifier.padding(10.dp))*/
+                            }
+                           is LandingScreenState.Error->{
+
+
+                            }
                         }
+
                     }
                 }
             }

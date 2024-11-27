@@ -12,7 +12,7 @@ class ViewModelFactory(private val retrofit: Retrofit) : ViewModelProvider.Facto
 
     override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
         if (modelClass.isAssignableFrom(SharedViewModel::class.java)) {
-            return SharedViewModel(MVIRepositoryImpl(retrofit)) as T
+            return SharedViewModel(retrofit) as T
         }
         throw IllegalArgumentException("Unknown class name")
     }
