@@ -32,37 +32,34 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.service.mvisample.intent.LandingScreenIntent
+import com.service.mvisample.intent.HomeIntent
 import com.service.mvisample.model.User
-import com.service.mvisample.view.viewmodel.SharedViewModel
-import com.service.mvisample.view.viewstate.LandingScreenState
+import com.service.mvisample.view.viewstate.HomeUiState
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LandingScreen(navController: NavHostController,sharedViewModel: SharedViewModel) {
+fun LandingScreen(
+    onIntent: (HomeIntent) -> Unit,
+    uiState: HomeUiState,
+    navController: NavHostController) {
        val context = LocalContext.current
 
         Scaffold(
             topBar = {
                 TopAppBar(
                     title = {
-                        Column {
+                        Row {
                             Text(
                                 text = "Welcome, Ajaya",
                                 style = MaterialTheme.typography.titleLarge,
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
-                            Text(
-                                text = "Explore the users below",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
-                            )
                         }
                     },
                     actions = {
                         IconButton(onClick = {
-                            sharedViewModel.userIntent()
+                            onIntent(HomeIntent.FetchUsers)
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Person,
@@ -76,9 +73,9 @@ fun LandingScreen(navController: NavHostController,sharedViewModel: SharedViewMo
             content = { padding ->
                 Box(
                     modifier = Modifier.padding(padding)) {
-                    with(sharedViewModel.state){
-                        when(this.value){
-                           is LandingScreenState.Loading->{
+                    with(uiState){
+                        when{
+                            loading == true->{
                                 Box(modifier = Modifier.fillMaxSize()) {
                                     CircularProgressIndicator(
                                         color = Color.Red,
@@ -90,17 +87,22 @@ fun LandingScreen(navController: NavHostController,sharedViewModel: SharedViewMo
                                     )
                                 }
                             }
-                           is LandingScreenState.Idle->{
 
+                            defaultScreen != null -> {
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    Text(
+                                        text = "${defaultScreen}",
+                                        color = Color.Red
+                                    )
+                                }
                             }
-                           is LandingScreenState.Users->{
-                              /* UserListing(userList = value.user , onUserClick = {
+                            loading == false && errorMessage == null->{
+                                UserListing(userList = users?: arrayListOf() , onUserClick = {
 
-                               }, modifier = Modifier.padding(10.dp))*/
+                                }, modifier = Modifier.padding(10.dp))
                             }
-                           is LandingScreenState.Error->{
 
-
+                            errorMessage != null -> {
                             }
                         }
 

@@ -1,22 +1,21 @@
 package com.service.mvisample.view.viewmodel
 
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.reflect.TypeToken
 import com.service.mvisample.commonutils.extensions.convertIntoModels
-import com.service.mvisample.intent.LandingScreenIntent
+import com.service.mvisample.intent.HomeIntent
 import com.service.mvisample.model.User
-import com.service.mvisample.model.repository.api.MVIRepositoryImpl
 import com.service.mvisample.model.repository.api.NetworkApiCallInterface
-import com.service.mvisample.view.viewstate.LandingScreenState
+import com.service.mvisample.view.viewstate.HomeUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
@@ -27,14 +26,20 @@ import javax.inject.Inject
 class SharedViewModel @Inject constructor(
     private val retrofit: Retrofit
 ) : ViewModel() {
-    val userIntent = Channel<LandingScreenIntent>(Channel.UNLIMITED)
-    private val _state = MutableStateFlow<LandingScreenState>(LandingScreenState.Idle)
-    val state: StateFlow<LandingScreenState>
-        get() = _state
+    val homeIntent = Channel<HomeIntent>(Channel.UNLIMITED)
+    var _state by mutableStateOf(HomeUiState())
 
-    init {
-        handleIntent()
+
+    fun onEvent(event: HomeIntent) {
+        when (event) {
+            HomeIntent.DefaultScreen -> _state =
+                _state.copy( defaultScreen = "Please Sync User Listing...")
+            HomeIntent.FetchUsers -> fetchUser()
+            is HomeIntent.OnUserSelected -> _state =
+                _state.copy( selectedUser = event.selectedUser)
+        }
     }
+
 
     suspend fun getUsers(): Flow<List<User>> {
         return flow {
@@ -51,37 +56,26 @@ class SharedViewModel @Inject constructor(
         }
     }
 
-
-    private fun handleIntent() {
-        viewModelScope.launch {
-            userIntent.consumeAsFlow().collect {
-                when (it) {
-                    is LandingScreenIntent.LandingScreen -> fetchUser()
-                }
-            }
-        }
-    }
-
-
     private fun fetchUser() {
         viewModelScope.launch {
-            _state.value = LandingScreenState.Loading
+            _state = _state.copy(loading = true)
             getUsers().catch {
-                _state.value = LandingScreenState.Error("No Users Found!!!")
+                _state = _state.copy(
+                    loading = false,
+                    errorMessage = it.message
+                )
             }.collect {
-                _state.value =  LandingScreenState.Users(it)
+                _state = _state.copy(
+                    loading = false,
+                    users = it
+                )
             }
-            /*_state.value = try {
-                LandingScreenState.Users(mviRepositoryImpl.getUsers())
-            } catch (e: Exception) {
-                LandingScreenState.Error(e.localizedMessage)
-            }*/
         }
     }
 
     fun userIntent(){
         viewModelScope.launch {
-            userIntent.send(LandingScreenIntent.LandingScreen)
+            homeIntent.send(HomeIntent.FetchUsers)
         }
     }
 }
