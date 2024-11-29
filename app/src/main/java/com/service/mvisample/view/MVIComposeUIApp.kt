@@ -15,6 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.service.mvisample.view.navigation.Destination
+import com.service.mvisample.view.screens.DetailedScreen
 import com.service.mvisample.view.screens.LandingScreen
 import com.service.mvisample.view.viewmodel.SharedViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,6 +49,14 @@ fun MVIComposeNavHost(navController: NavHostController,sharedViewModel: SharedVi
             Box(modifier = Modifier.fillMaxSize()) {
                 LandingScreen(
                     onIntent= sharedViewModel::onEvent,
+                    uiState=sharedViewModel._state,
+                    navController= navController
+                )
+            }
+        }
+        composable(route = Destination.detailed) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                DetailedScreen(
                     uiState=sharedViewModel._state,
                     navController= navController
                 )
