@@ -2,7 +2,6 @@ package com.service.mvisample.model.repository.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import com.service.mvisample.model.repository.database.dao.MediaInfoDao
 import com.service.mvisample.model.repository.database.dao.UserInfoDao
 import com.service.mvisample.model.repository.database.entity.UserInfoEntity
 
